@@ -36,7 +36,10 @@ It acts as a semantic memory layer on top of the Qdrant database.
 
 ## Environment Variables
 
-The configuration of the server is done using environment variables:
+Configuration is done via environment variables. The only command-line argument is `--transport`, used to select the [transport protocol](#transport-protocols).
+
+> [!NOTE]
+> You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 
 | Name                     | Description                                                         | Default Value                                                     |
 |--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
@@ -52,27 +55,27 @@ The configuration of the server is done using environment variables:
 | `EMBEDDING_VECTOR_SIZE`  | Vector dimension for OpenAI, Vertex AI, or Cohere                   | None                                                              |
 | `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 | `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-
-Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
-
-> [!IMPORTANT]
-> Command-line arguments are not supported anymore! Please use environment variables for all configuration.
+| `QDRANT_SEARCH_LIMIT`    | Maximum number of results to return from search                     | `10`                                                              |
+| `QDRANT_READ_ONLY`       | Enable read-only mode (disables `qdrant-store` tool)                | `false`                                                           |
 
 ### FastMCP Environment Variables
 
 Since `mcp-server-qdrant-embeddings` is based on FastMCP, it also supports all the FastMCP environment variables. The most
 important ones are listed below:
 
-| Environment Variable                  | Description                                               | Default Value |
-|---------------------------------------|-----------------------------------------------------------|---------------|
-| `FASTMCP_DEBUG`                       | Enable debug mode                                         | `false`       |
-| `FASTMCP_LOG_LEVEL`                   | Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL) | `INFO`        |
-| `FASTMCP_HOST`                        | Host address to bind the server to                        | `127.0.0.1`   |
-| `FASTMCP_PORT`                        | Port to run the server on                                 | `8000`        |
-| `FASTMCP_WARN_ON_DUPLICATE_RESOURCES` | Show warnings for duplicate resources                     | `true`        |
-| `FASTMCP_WARN_ON_DUPLICATE_TOOLS`     | Show warnings for duplicate tools                         | `true`        |
-| `FASTMCP_WARN_ON_DUPLICATE_PROMPTS`   | Show warnings for duplicate prompts                       | `true`        |
-| `FASTMCP_DEPENDENCIES`                | List of dependencies to install in the server environment | `[]`          |
+| Environment Variable                       | Description                                                     | Default Value |
+|--------------------------------------------|-----------------------------------------------------------------|---------------|
+| `FASTMCP_LOG_LEVEL`                        | Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)       | `INFO`        |
+| `FASTMCP_SERVER_DEBUG`                     | Enable debug mode                                               | `false`       |
+| `FASTMCP_SERVER_HOST`                      | Host address to bind the server to                              | `127.0.0.1`   |
+| `FASTMCP_SERVER_PORT`                      | Port to run the server on                                       | `8000`        |
+| `FASTMCP_SERVER_ON_DUPLICATE_RESOURCES`    | Behavior for duplicate resources (warn, error, replace, ignore) | `warn`        |
+| `FASTMCP_SERVER_ON_DUPLICATE_TOOLS`        | Behavior for duplicate tools (warn, error, replace, ignore)     | `warn`        |
+| `FASTMCP_SERVER_ON_DUPLICATE_PROMPTS`      | Behavior for duplicate prompts (warn, error, replace, ignore)   | `warn`        |
+| `FASTMCP_SERVER_DEPENDENCIES`              | List of dependencies to install in the server environment       | `[]`          |
+
+> [!NOTE]
+> Server-specific settings use the `FASTMCP_SERVER_` prefix. This may change in future versions.
 
 ## Installation
 
@@ -106,7 +109,7 @@ Supported transport protocols:
 The default transport is `stdio` if not specified.
 
 When SSE transport is used, the server will listen on the specified port and wait for incoming connections. The default
-port is 8000, however it can be changed using the `FASTMCP_PORT` environment variable.
+port is 8000, however it can be changed using the `FASTMCP_SERVER_PORT` environment variable.
 
 ```shell
 QDRANT_URL="http://localhost:6333" \
@@ -125,7 +128,7 @@ docker build -t mcp-server-qdrant-embeddings .
 
 # Run the container
 docker run -p 8000:8000 \
-  -e FASTMCP_HOST="0.0.0.0" \
+  -e FASTMCP_SERVER_HOST="0.0.0.0" \
   -e QDRANT_URL="http://your-qdrant-server:6333" \
   -e QDRANT_API_KEY="your-api-key" \
   -e COLLECTION_NAME="your-collection" \
@@ -133,7 +136,7 @@ docker run -p 8000:8000 \
 ```
 
 > [!TIP]
-> Please note that we set `FASTMCP_HOST="0.0.0.0"` to make the server listen on all network interfaces. This is
+> Please note that we set `FASTMCP_SERVER_HOST="0.0.0.0"` to make the server listen on all network interfaces. This is
 > necessary when running the server in a Docker container.
 
 ### Installing via Smithery
@@ -522,3 +525,8 @@ Once started, open your browser to http://localhost:5173 to access the inspector
 This MCP server is licensed under the Apache License 2.0. This means you are free to use, modify, and distribute the
 software, subject to the terms and conditions of the Apache License 2.0. For more details, please see the LICENSE file
 in the project repository.
+
+## Privacy and support
+
+- [Privacy Policy](https://qdrant.tech/legal/privacy-policy/)
+- [Support](https://github.com/qdrant/mcp-server-qdrant/issues)
