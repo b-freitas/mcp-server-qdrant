@@ -1,17 +1,17 @@
-# mcp-server-qdrant: A Qdrant MCP server
-
-[![smithery badge](https://smithery.ai/badge/mcp-server-qdrant)](https://smithery.ai/protocol/mcp-server-qdrant)
+# mcp-server-qdrant-embeddings: Qdrant MCP server with extended embedding providers
 
 > The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) is an open protocol that enables
 > seamless integration between LLM applications and external data sources and tools. Whether you're building an
 > AI-powered IDE, enhancing a chat interface, or creating custom AI workflows, MCP provides a standardized way to
 > connect LLMs with the context they need.
 
-This repository is an example of how to create a MCP server for [Qdrant](https://qdrant.tech/), a vector search engine.
+This independently maintained distribution is based on the [official Qdrant MCP server](https://github.com/qdrant/mcp-server-qdrant)
+and follows its upstream development while adding OpenAI, Vertex AI, and Cohere embedding providers. It is maintained
+as an independent distribution.
 
 ## Overview
 
-An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine.
+An Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine.
 It acts as a semantic memory layer on top of the Qdrant database.
 
 ## Components
@@ -47,8 +47,12 @@ Configuration is done via environment variables. The only command-line argument 
 | `QDRANT_API_KEY`         | API key for the Qdrant server                                       | None                                                              |
 | `COLLECTION_NAME`        | Name of the default collection to use.                              | None                                                              |
 | `QDRANT_LOCAL_PATH`      | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
-| `EMBEDDING_PROVIDER`     | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
+| `EMBEDDING_PROVIDER`     | Provider: `fastembed`, `openai`, `vertexai`, or `cohere`            | `fastembed`                                                       |
 | `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
+| `EMBEDDING_API_KEY`      | API key used by OpenAI or Cohere providers                          | None                                                              |
+| `GOOGLE_CLOUD_PROJECT`   | Google Cloud project ID for Vertex AI                               | Detected by Google credentials                                    |
+| `GOOGLE_CLOUD_LOCATION`  | Vertex AI region                                                    | `us-central1`                                                     |
+| `EMBEDDING_VECTOR_SIZE`  | Vector dimension for OpenAI, Vertex AI, or Cohere                   | None                                                              |
 | `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 | `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 | `QDRANT_SEARCH_LIMIT`    | Maximum number of results to return from search                     | `10`                                                              |
@@ -56,7 +60,7 @@ Configuration is done via environment variables. The only command-line argument 
 
 ### FastMCP Environment Variables
 
-Since `mcp-server-qdrant` is based on FastMCP, it also supports all the FastMCP environment variables. The most
+Since `mcp-server-qdrant-embeddings` is based on FastMCP, it also supports all the FastMCP environment variables. The most
 important ones are listed below:
 
 | Environment Variable                       | Description                                                     | Default Value |
@@ -77,13 +81,13 @@ important ones are listed below:
 
 ### Using uvx
 
-When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly run *mcp-server-qdrant*.
+When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly run *mcp-server-qdrant-embeddings*.
 
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
 EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-uvx mcp-server-qdrant
+uvx mcp-server-qdrant-embeddings
 ```
 
 #### Transport Protocols
@@ -93,7 +97,7 @@ The server supports different transport protocols that can be specified using th
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
-uvx mcp-server-qdrant --transport sse
+uvx mcp-server-qdrant-embeddings --transport sse
 ```
 
 Supported transport protocols:
@@ -110,8 +114,8 @@ port is 8000, however it can be changed using the `FASTMCP_SERVER_PORT` environm
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
-FASTMCP_SERVER_PORT=1234 \
-uvx mcp-server-qdrant --transport sse
+FASTMCP_PORT=1234 \
+uvx mcp-server-qdrant-embeddings --transport sse
 ```
 
 ### Using Docker
@@ -120,7 +124,7 @@ A Dockerfile is available for building and running the MCP server:
 
 ```bash
 # Build the container
-docker build -t mcp-server-qdrant .
+docker build -t mcp-server-qdrant-embeddings .
 
 # Run the container
 docker run -p 8000:8000 \
@@ -128,7 +132,7 @@ docker run -p 8000:8000 \
   -e QDRANT_URL="http://your-qdrant-server:6333" \
   -e QDRANT_API_KEY="your-api-key" \
   -e COLLECTION_NAME="your-collection" \
-  mcp-server-qdrant
+  mcp-server-qdrant-embeddings
 ```
 
 > [!TIP]
@@ -137,7 +141,7 @@ docker run -p 8000:8000 \
 
 ### Installing via Smithery
 
-To install Qdrant MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/protocol/mcp-server-qdrant):
+The Smithery listing below installs the official upstream Qdrant server, not this distribution:
 
 ```bash
 npx @smithery/cli install mcp-server-qdrant --client claude
@@ -152,7 +156,7 @@ To use this server with the Claude Desktop app, add the following configuration 
 {
   "qdrant": {
     "command": "uvx",
-    "args": ["mcp-server-qdrant"],
+    "args": ["mcp-server-qdrant-embeddings"],
     "env": {
       "QDRANT_URL": "https://xyz-example.eu-central.aws.cloud.qdrant.io:6333",
       "QDRANT_API_KEY": "your_api_key",
@@ -169,7 +173,7 @@ For local Qdrant mode:
 {
   "qdrant": {
     "command": "uvx",
-    "args": ["mcp-server-qdrant"],
+    "args": ["mcp-server-qdrant-embeddings"],
     "env": {
       "QDRANT_LOCAL_PATH": "/path/to/qdrant/database",
       "COLLECTION_NAME": "your-collection-name",
@@ -181,8 +185,43 @@ For local Qdrant mode:
 
 This MCP server will automatically create a collection with the specified name if it doesn't exist.
 
-By default, the server will use the `sentence-transformers/all-MiniLM-L6-v2` embedding model to encode memories.
-For the time being, only [FastEmbed](https://qdrant.github.io/fastembed/) models are supported.
+By default, the server uses `sentence-transformers/all-MiniLM-L6-v2` with FastEmbed. The supported provider values are
+`fastembed`, `openai`, `vertexai`, and `cohere`. Set `EMBEDDING_VECTOR_SIZE` to the chosen model's output dimension
+when using a hosted provider; it is used when creating a Qdrant collection.
+
+OpenAI example:
+
+```shell
+EMBEDDING_PROVIDER=openai \
+EMBEDDING_MODEL=text-embedding-3-small \
+EMBEDDING_API_KEY=your-openai-api-key \
+EMBEDDING_VECTOR_SIZE=1536 \
+uvx mcp-server-qdrant-embeddings
+```
+
+Vertex AI example (using Application Default Credentials):
+
+```shell
+EMBEDDING_PROVIDER=vertexai \
+EMBEDDING_MODEL=gemini-embedding-001 \
+GOOGLE_CLOUD_PROJECT=your-project-id \
+GOOGLE_CLOUD_LOCATION=us-central1 \
+EMBEDDING_VECTOR_SIZE=3072 \
+uvx mcp-server-qdrant-embeddings
+```
+
+Cohere example:
+
+```shell
+EMBEDDING_PROVIDER=cohere \
+EMBEDDING_MODEL=embed-v4.0 \
+EMBEDDING_API_KEY=your-cohere-api-key \
+EMBEDDING_VECTOR_SIZE=1536 \
+uvx mcp-server-qdrant-embeddings
+```
+
+Cohere uses `search_document` for stored text and `search_query` for searches. Documents are sent in batches of at most
+96, as required by the Cohere Embed API.
 
 ## Support for other tools
 
@@ -207,7 +246,7 @@ TOOL_FIND_DESCRIPTION="Search for relevant code snippets based on natural langua
 The 'query' parameter should describe what you're looking for, \
 and the tool will return the most relevant code snippets. \
 Use this when you need to find existing code snippets for reuse or reference." \
-uvx mcp-server-qdrant --transport sse # Enable SSE transport
+uvx mcp-server-qdrant-embeddings --transport sse # Enable SSE transport
 ```
 
 In Cursor/Windsurf, you can then configure the MCP server in your settings by pointing to this running server using
@@ -238,7 +277,7 @@ that describe what you're looking for.
 > adjusting the descriptions to better match your team's workflow and the specific types of code snippets you want to
 > store and retrieve.
 
-**If you have successfully installed the `mcp-server-qdrant`, but still can't get it to work with Cursor, please
+**If you have successfully installed `mcp-server-qdrant-embeddings` but still can't get it to work with Cursor, please
 consider creating the [Cursor rules](https://docs.cursor.com/context/rules-for-ai) so the MCP tools are always used when
 the agent produces a new code snippet.** You can restrict the rules to only work for certain file types, to avoid using
 the MCP server for the documentation or other types of content.
@@ -248,19 +287,19 @@ the MCP server for the documentation or other types of content.
 You can enhance Claude Code's capabilities by connecting it to this MCP server, enabling semantic search over your
 existing codebase.
 
-#### Setting up mcp-server-qdrant
+#### Setting up mcp-server-qdrant-embeddings
 
 1. Add the MCP server to Claude Code:
 
     ```shell
-    # Add mcp-server-qdrant configured for code search
+    # Add mcp-server-qdrant-embeddings configured for code search
     claude mcp add code-search \
     -e QDRANT_URL="http://localhost:6333" \
     -e COLLECTION_NAME="code-repository" \
     -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
     -e TOOL_STORE_DESCRIPTION="Store code snippets with descriptions. The 'information' parameter should contain a natural language description of what the code does, while the actual code should be included in the 'metadata' parameter as a 'code' property." \
     -e TOOL_FIND_DESCRIPTION="Search for relevant code snippets using natural language. The 'query' parameter should describe the functionality you're looking for." \
-    -- uvx mcp-server-qdrant
+    -- uvx mcp-server-qdrant-embeddings
     ```
 
 2. Verify the server was added:
@@ -289,7 +328,8 @@ COLLECTION_NAME=mcp-dev fastmcp dev src/mcp_server_qdrant/server.py
 
 ### Using with VS Code
 
-For one-click installation, click one of the install buttons below:
+The one-click buttons below are maintained by upstream and install the official Qdrant server. To use this distribution, use
+the manual configurations below with `mcp-server-qdrant-embeddings`.
 
 [![Install with UVX in VS Code](https://img.shields.io/badge/VS_Code-UVX-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=qdrant&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22mcp-server-qdrant%22%5D%2C%22env%22%3A%7B%22QDRANT_URL%22%3A%22%24%7Binput%3AqdrantUrl%7D%22%2C%22QDRANT_API_KEY%22%3A%22%24%7Binput%3AqdrantApiKey%7D%22%2C%22COLLECTION_NAME%22%3A%22%24%7Binput%3AcollectionName%7D%22%7D%7D&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22qdrantUrl%22%2C%22description%22%3A%22Qdrant+URL%22%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22qdrantApiKey%22%2C%22description%22%3A%22Qdrant+API+Key%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22collectionName%22%2C%22description%22%3A%22Collection+Name%22%7D%5D) [![Install with UVX in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-UVX-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=qdrant&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22mcp-server-qdrant%22%5D%2C%22env%22%3A%7B%22QDRANT_URL%22%3A%22%24%7Binput%3AqdrantUrl%7D%22%2C%22QDRANT_API_KEY%22%3A%22%24%7Binput%3AqdrantApiKey%7D%22%2C%22COLLECTION_NAME%22%3A%22%24%7Binput%3AcollectionName%7D%22%7D%7D&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22qdrantUrl%22%2C%22description%22%3A%22Qdrant+URL%22%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22qdrantApiKey%22%2C%22description%22%3A%22Qdrant+API+Key%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22collectionName%22%2C%22description%22%3A%22Collection+Name%22%7D%5D&quality=insiders)
 
@@ -323,7 +363,7 @@ Add the following JSON block to your User Settings (JSON) file in VS Code. You c
     "servers": {
       "qdrant": {
         "command": "uvx",
-        "args": ["mcp-server-qdrant"],
+        "args": ["mcp-server-qdrant-embeddings"],
         "env": {
           "QDRANT_URL": "${input:qdrantUrl}",
           "QDRANT_API_KEY": "${input:qdrantApiKey}",
@@ -369,7 +409,7 @@ Or if you prefer using Docker, add this configuration instead:
           "-e", "QDRANT_URL",
           "-e", "QDRANT_API_KEY",
           "-e", "COLLECTION_NAME",
-          "mcp-server-qdrant"
+          "mcp-server-qdrant-embeddings"
         ],
         "env": {
           "QDRANT_URL": "${input:qdrantUrl}",
@@ -407,7 +447,7 @@ Alternatively, you can create a `.vscode/mcp.json` file in your workspace with t
   "servers": {
     "qdrant": {
       "command": "uvx",
-      "args": ["mcp-server-qdrant"],
+      "args": ["mcp-server-qdrant-embeddings"],
       "env": {
         "QDRANT_URL": "${input:qdrantUrl}",
         "QDRANT_API_KEY": "${input:qdrantApiKey}",
@@ -451,7 +491,7 @@ For workspace configuration with Docker, use this in `.vscode/mcp.json`:
         "-e", "QDRANT_URL",
         "-e", "QDRANT_API_KEY",
         "-e", "COLLECTION_NAME",
-        "mcp-server-qdrant"
+        "mcp-server-qdrant-embeddings"
       ],
       "env": {
         "QDRANT_URL": "${input:qdrantUrl}",
@@ -465,10 +505,9 @@ For workspace configuration with Docker, use this in `.vscode/mcp.json`:
 
 ## Contributing
 
-If you have suggestions for how mcp-server-qdrant could be improved, or want to report a bug, open an issue!
-We'd love all and any contributions.
+If you have suggestions for improving this project or want to report a bug, open an issue in this repository.
 
-### Testing `mcp-server-qdrant` locally
+### Testing `mcp-server-qdrant-embeddings` locally
 
 The [MCP inspector](https://github.com/modelcontextprotocol/inspector) is a developer tool for testing and debugging MCP
 servers. It runs both a client UI (default port 5173) and an MCP proxy server (default port 3000). Open the client UI in

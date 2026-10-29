@@ -78,6 +78,51 @@ class TestEmbeddingProviderSettings:
         assert settings.provider_type == EmbeddingProviderType.FASTEMBED
         assert settings.model_name == "custom_model"
 
+    def test_openai_config(self, monkeypatch):
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
+        monkeypatch.setenv("EMBEDDING_MODEL", "text-embedding-3-small")
+        monkeypatch.setenv("EMBEDDING_API_KEY", "test-key")
+        monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "1536")
+
+        settings = EmbeddingProviderSettings()
+
+        assert settings.provider_type == EmbeddingProviderType.OPENAI
+        assert settings.model_name == "text-embedding-3-small"
+        assert settings.api_key == "test-key"
+        assert settings.vector_size == 1536
+
+    def test_cohere_config(self, monkeypatch):
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "cohere")
+        monkeypatch.setenv("EMBEDDING_MODEL", "embed-v4.0")
+        monkeypatch.setenv("EMBEDDING_API_KEY", "cohere-test-key")
+        monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "1536")
+
+        settings = EmbeddingProviderSettings()
+
+        assert settings.provider_type == EmbeddingProviderType.COHERE
+        assert settings.api_key == "cohere-test-key"
+        assert settings.vector_size == 1536
+
+    def test_vertexai_config(self, monkeypatch):
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "vertexai")
+        monkeypatch.setenv("EMBEDDING_MODEL", "gemini-embedding-001")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "europe-west1")
+        monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "3072")
+
+        settings = EmbeddingProviderSettings()
+
+        assert settings.provider_type == EmbeddingProviderType.VERTEXAI
+        assert settings.google_cloud_project == "test-project"
+        assert settings.google_cloud_location == "europe-west1"
+        assert settings.vector_size == 3072
+
+    def test_vector_size_must_be_positive(self, monkeypatch):
+        monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "0")
+
+        with pytest.raises(ValueError):
+            EmbeddingProviderSettings()
+
 
 class TestToolSettings:
     def test_default_values(self):
