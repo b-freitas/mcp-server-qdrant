@@ -46,6 +46,16 @@ class EmbeddingProviderSettings(BaseSettings):
         default="sentence-transformers/all-MiniLM-L6-v2",
         validation_alias="EMBEDDING_MODEL",
     )
+    api_key: str | None = Field(default=None, validation_alias="EMBEDDING_API_KEY")
+    google_cloud_project: str | None = Field(
+        default=None, validation_alias="GOOGLE_CLOUD_PROJECT"
+    )
+    google_cloud_location: str = Field(
+        default="us-central1", validation_alias="GOOGLE_CLOUD_LOCATION"
+    )
+    vector_size: int | None = Field(
+        default=None, gt=0, validation_alias="EMBEDDING_VECTOR_SIZE"
+    )
 
 
 class FilterableField(BaseModel):
