@@ -1,5 +1,10 @@
 # mcp-server-qdrant-embeddings: Qdrant MCP server with extended embedding providers
 
+[![PyPI version](https://img.shields.io/pypi/v/mcp-server-qdrant-embeddings)](https://pypi.org/project/mcp-server-qdrant-embeddings/)
+[![Python versions](https://img.shields.io/pypi/pyversions/mcp-server-qdrant-embeddings)](https://pypi.org/project/mcp-server-qdrant-embeddings/)
+[![Tests](https://github.com/b-freitas/mcp-server-qdrant/actions/workflows/pytest.yaml/badge.svg?branch=master)](https://github.com/b-freitas/mcp-server-qdrant/actions/workflows/pytest.yaml)
+[![License](https://img.shields.io/github/license/b-freitas/mcp-server-qdrant)](LICENSE)
+
 > The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) is an open protocol that enables
 > seamless integration between LLM applications and external data sources and tools. Whether you're building an
 > AI-powered IDE, enhancing a chat interface, or creating custom AI workflows, MCP provides a standardized way to
