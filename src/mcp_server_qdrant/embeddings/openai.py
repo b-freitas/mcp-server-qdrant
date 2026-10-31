@@ -12,6 +12,8 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         api_key: str | None = None,
         vector_size: int | None = None,
     ):
+        if not api_key:
+            raise ValueError("EMBEDDING_API_KEY must be set for the openai provider.")
         self.model_name = model_name
         self.vector_size = vector_size
         self.client = AsyncOpenAI(api_key=api_key)

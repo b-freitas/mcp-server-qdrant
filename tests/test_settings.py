@@ -66,16 +66,16 @@ class TestQdrantSettings:
 
 class TestEmbeddingProviderSettings:
     def test_default_values(self):
-        """Test default values are set correctly."""
+        """Require callers to choose a provider explicitly."""
         settings = EmbeddingProviderSettings()
-        assert settings.provider_type == EmbeddingProviderType.FASTEMBED
+        assert settings.provider_type is None
         assert settings.model_name == "sentence-transformers/all-MiniLM-L6-v2"
 
     def test_custom_values(self, monkeypatch):
         """Test loading custom values from environment variables."""
         monkeypatch.setenv("EMBEDDING_MODEL", "custom_model")
         settings = EmbeddingProviderSettings()
-        assert settings.provider_type == EmbeddingProviderType.FASTEMBED
+        assert settings.provider_type is None
         assert settings.model_name == "custom_model"
 
     def test_openai_config(self, monkeypatch):

@@ -38,8 +38,8 @@ class EmbeddingProviderSettings(BaseSettings):
     Configuration for the embedding provider.
     """
 
-    provider_type: EmbeddingProviderType = Field(
-        default=EmbeddingProviderType.FASTEMBED,
+    provider_type: EmbeddingProviderType | None = Field(
+        default=None,
         validation_alias="EMBEDDING_PROVIDER",
     )
     model_name: str = Field(

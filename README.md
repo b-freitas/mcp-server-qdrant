@@ -47,7 +47,7 @@ Configuration is done via environment variables. The only command-line argument 
 | `QDRANT_API_KEY`         | API key for the Qdrant server                                       | None                                                              |
 | `COLLECTION_NAME`        | Name of the default collection to use.                              | None                                                              |
 | `QDRANT_LOCAL_PATH`      | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
-| `EMBEDDING_PROVIDER`     | Provider: `fastembed`, `openai`, `vertexai`, or `cohere`            | `fastembed`                                                       |
+| `EMBEDDING_PROVIDER`     | Required provider: `fastembed`, `openai`, `vertexai`, or `cohere`   | None                                                              |
 | `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
 | `EMBEDDING_API_KEY`      | API key used by OpenAI or Cohere providers                          | None                                                              |
 | `GOOGLE_CLOUD_PROJECT`   | Google Cloud project ID for Vertex AI                               | Detected by Google credentials                                    |
@@ -81,13 +81,15 @@ important ones are listed below:
 
 ### Using uvx
 
-When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly run *mcp-server-qdrant-embeddings*.
+Embedding providers are optional extras. Set `EMBEDDING_PROVIDER` and install the matching extra; remote providers do
+not install ONNX Runtime. For FastEmbed:
 
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
+EMBEDDING_PROVIDER=fastembed \
 EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-uvx mcp-server-qdrant-embeddings
+uvx --from 'mcp-server-qdrant-embeddings[fastembed]' mcp-server-qdrant-embeddings
 ```
 
 #### Transport Protocols
@@ -97,7 +99,8 @@ The server supports different transport protocols that can be specified using th
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
-uvx mcp-server-qdrant-embeddings --transport sse
+EMBEDDING_PROVIDER=fastembed \
+uvx --from 'mcp-server-qdrant-embeddings[fastembed]' mcp-server-qdrant-embeddings --transport sse
 ```
 
 Supported transport protocols:
@@ -114,8 +117,9 @@ port is 8000, however it can be changed using the `FASTMCP_SERVER_PORT` environm
 ```shell
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="my-collection" \
+EMBEDDING_PROVIDER=fastembed \
 FASTMCP_PORT=1234 \
-uvx mcp-server-qdrant-embeddings --transport sse
+uvx --from 'mcp-server-qdrant-embeddings[fastembed]' mcp-server-qdrant-embeddings --transport sse
 ```
 
 ### Using Docker
@@ -132,6 +136,7 @@ docker run -p 8000:8000 \
   -e QDRANT_URL="http://your-qdrant-server:6333" \
   -e QDRANT_API_KEY="your-api-key" \
   -e COLLECTION_NAME="your-collection" \
+  -e EMBEDDING_PROVIDER="fastembed" \
   mcp-server-qdrant-embeddings
 ```
 
@@ -156,11 +161,12 @@ To use this server with the Claude Desktop app, add the following configuration 
 {
   "qdrant": {
     "command": "uvx",
-    "args": ["mcp-server-qdrant-embeddings"],
+    "args": ["--from", "mcp-server-qdrant-embeddings[fastembed]", "mcp-server-qdrant-embeddings"],
     "env": {
       "QDRANT_URL": "https://xyz-example.eu-central.aws.cloud.qdrant.io:6333",
       "QDRANT_API_KEY": "your_api_key",
       "COLLECTION_NAME": "your-collection-name",
+      "EMBEDDING_PROVIDER": "fastembed",
       "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
     }
   }
@@ -173,10 +179,11 @@ For local Qdrant mode:
 {
   "qdrant": {
     "command": "uvx",
-    "args": ["mcp-server-qdrant-embeddings"],
+    "args": ["--from", "mcp-server-qdrant-embeddings[fastembed]", "mcp-server-qdrant-embeddings"],
     "env": {
       "QDRANT_LOCAL_PATH": "/path/to/qdrant/database",
       "COLLECTION_NAME": "your-collection-name",
+      "EMBEDDING_PROVIDER": "fastembed",
       "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
     }
   }
@@ -185,8 +192,8 @@ For local Qdrant mode:
 
 This MCP server will automatically create a collection with the specified name if it doesn't exist.
 
-By default, the server uses `sentence-transformers/all-MiniLM-L6-v2` with FastEmbed. The supported provider values are
-`fastembed`, `openai`, `vertexai`, and `cohere`. Set `EMBEDDING_VECTOR_SIZE` to the chosen model's output dimension
+Set `EMBEDDING_PROVIDER` explicitly to `fastembed`, `openai`, `vertexai`, or `cohere`. For FastEmbed, the default model
+is `sentence-transformers/all-MiniLM-L6-v2`. Set `EMBEDDING_VECTOR_SIZE` to the chosen model's output dimension
 when using a hosted provider; it is used when creating a Qdrant collection.
 
 OpenAI example:
@@ -196,7 +203,7 @@ EMBEDDING_PROVIDER=openai \
 EMBEDDING_MODEL=text-embedding-3-small \
 EMBEDDING_API_KEY=your-openai-api-key \
 EMBEDDING_VECTOR_SIZE=1536 \
-uvx mcp-server-qdrant-embeddings
+uvx --from 'mcp-server-qdrant-embeddings[openai]' mcp-server-qdrant-embeddings
 ```
 
 Vertex AI example (using Application Default Credentials):
@@ -207,7 +214,7 @@ EMBEDDING_MODEL=gemini-embedding-001 \
 GOOGLE_CLOUD_PROJECT=your-project-id \
 GOOGLE_CLOUD_LOCATION=us-central1 \
 EMBEDDING_VECTOR_SIZE=3072 \
-uvx mcp-server-qdrant-embeddings
+uvx --from 'mcp-server-qdrant-embeddings[vertexai]' mcp-server-qdrant-embeddings
 ```
 
 Cohere example:
@@ -217,7 +224,7 @@ EMBEDDING_PROVIDER=cohere \
 EMBEDDING_MODEL=embed-v4.0 \
 EMBEDDING_API_KEY=your-cohere-api-key \
 EMBEDDING_VECTOR_SIZE=1536 \
-uvx mcp-server-qdrant-embeddings
+uvx --from 'mcp-server-qdrant-embeddings[cohere]' mcp-server-qdrant-embeddings
 ```
 
 Cohere uses `search_document` for stored text and `search_query` for searches. Documents are sent in batches of at most
@@ -237,6 +244,7 @@ descriptions:
 ```bash
 QDRANT_URL="http://localhost:6333" \
 COLLECTION_NAME="code-snippets" \
+EMBEDDING_PROVIDER=fastembed \
 TOOL_STORE_DESCRIPTION="Store reusable code snippets for later retrieval. \
 The 'information' parameter should contain a natural language description of what the code does, \
 while the actual code should be included in the 'metadata' parameter as a 'code' property. \
@@ -246,7 +254,7 @@ TOOL_FIND_DESCRIPTION="Search for relevant code snippets based on natural langua
 The 'query' parameter should describe what you're looking for, \
 and the tool will return the most relevant code snippets. \
 Use this when you need to find existing code snippets for reuse or reference." \
-uvx mcp-server-qdrant-embeddings --transport sse # Enable SSE transport
+uvx --from 'mcp-server-qdrant-embeddings[fastembed]' mcp-server-qdrant-embeddings --transport sse # Enable SSE transport
 ```
 
 In Cursor/Windsurf, you can then configure the MCP server in your settings by pointing to this running server using
@@ -296,10 +304,11 @@ existing codebase.
     claude mcp add code-search \
     -e QDRANT_URL="http://localhost:6333" \
     -e COLLECTION_NAME="code-repository" \
+    -e EMBEDDING_PROVIDER="fastembed" \
     -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
     -e TOOL_STORE_DESCRIPTION="Store code snippets with descriptions. The 'information' parameter should contain a natural language description of what the code does, while the actual code should be included in the 'metadata' parameter as a 'code' property." \
     -e TOOL_FIND_DESCRIPTION="Search for relevant code snippets using natural language. The 'query' parameter should describe the functionality you're looking for." \
-    -- uvx mcp-server-qdrant-embeddings
+    -- uvx --from 'mcp-server-qdrant-embeddings[fastembed]' mcp-server-qdrant-embeddings
     ```
 
 2. Verify the server was added:
@@ -319,11 +328,12 @@ Claude Code should be already able to:
 
 ### Run MCP server in Development Mode
 
-The MCP server can be run in development mode using the `mcp dev` command. This will start the server and open the MCP
-inspector in your browser.
+The MCP server can be run in development mode with FastEmbed installed as an extra. This starts the server and opens
+the MCP inspector in your browser.
 
 ```shell
-COLLECTION_NAME=mcp-dev fastmcp dev src/mcp_server_qdrant/server.py
+EMBEDDING_PROVIDER=fastembed COLLECTION_NAME=mcp-dev \
+uv run --extra fastembed fastmcp dev src/mcp_server_qdrant/server.py
 ```
 
 ### Using with VS Code
@@ -363,11 +373,12 @@ Add the following JSON block to your User Settings (JSON) file in VS Code. You c
     "servers": {
       "qdrant": {
         "command": "uvx",
-        "args": ["mcp-server-qdrant-embeddings"],
+        "args": ["--from", "mcp-server-qdrant-embeddings[fastembed]", "mcp-server-qdrant-embeddings"],
         "env": {
           "QDRANT_URL": "${input:qdrantUrl}",
           "QDRANT_API_KEY": "${input:qdrantApiKey}",
-          "COLLECTION_NAME": "${input:collectionName}"
+          "COLLECTION_NAME": "${input:collectionName}",
+          "EMBEDDING_PROVIDER": "fastembed"
         }
       }
     }
@@ -447,11 +458,12 @@ Alternatively, you can create a `.vscode/mcp.json` file in your workspace with t
   "servers": {
     "qdrant": {
       "command": "uvx",
-      "args": ["mcp-server-qdrant-embeddings"],
+      "args": ["--from", "mcp-server-qdrant-embeddings[fastembed]", "mcp-server-qdrant-embeddings"],
       "env": {
         "QDRANT_URL": "${input:qdrantUrl}",
         "QDRANT_API_KEY": "${input:qdrantApiKey}",
-        "COLLECTION_NAME": "${input:collectionName}"
+        "COLLECTION_NAME": "${input:collectionName}",
+        "EMBEDDING_PROVIDER": "fastembed"
       }
     }
   }
@@ -514,8 +526,8 @@ servers. It runs both a client UI (default port 5173) and an MCP proxy server (d
 your browser to use the inspector.
 
 ```shell
-QDRANT_URL=":memory:" COLLECTION_NAME="test" \
-fastmcp dev src/mcp_server_qdrant/server.py
+QDRANT_URL=":memory:" COLLECTION_NAME="test" EMBEDDING_PROVIDER=fastembed \
+uv run --extra fastembed fastmcp dev src/mcp_server_qdrant/server.py
 ```
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.

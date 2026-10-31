@@ -2,10 +2,36 @@ import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from mcp_server_qdrant.embeddings.cohere import CohereEmbeddingProvider
 from mcp_server_qdrant.embeddings.factory import create_embedding_provider
 from mcp_server_qdrant.embeddings.vertexai import VertexAIEmbeddingProvider
 from mcp_server_qdrant.settings import EmbeddingProviderSettings
+
+
+def test_factory_requires_provider(monkeypatch):
+    monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
+    settings = EmbeddingProviderSettings()
+
+    with pytest.raises(ValueError, match="EMBEDDING_PROVIDER is required"):
+        create_embedding_provider(settings)
+
+
+def test_factory_reports_missing_optional_provider_extra(monkeypatch):
+    monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
+    settings = EmbeddingProviderSettings()
+
+    def missing_openai_sdk(module_name):
+        raise ModuleNotFoundError("No module named 'openai'", name="openai")
+
+    monkeypatch.setattr(
+        "mcp_server_qdrant.embeddings.factory.import_module",
+        missing_openai_sdk,
+    )
+
+    with pytest.raises(RuntimeError, match=r"\[openai\]"):
+        create_embedding_provider(settings)
 
 
 def test_cohere_documents_are_batched_and_marked_for_search():

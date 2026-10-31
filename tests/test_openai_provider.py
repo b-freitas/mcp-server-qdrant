@@ -60,6 +60,11 @@ def test_vector_size_is_required():
         provider.get_vector_size()
 
 
+def test_api_key_is_required():
+    with pytest.raises(ValueError, match="EMBEDDING_API_KEY"):
+        OpenAIEmbeddingProvider("example/model", vector_size=3)
+
+
 def test_factory_creates_openai_provider(monkeypatch):
     monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
     monkeypatch.setenv("EMBEDDING_MODEL", "example/model")
