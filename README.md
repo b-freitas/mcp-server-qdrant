@@ -41,6 +41,9 @@ Configuration is done via environment variables. The only command-line argument 
 > [!NOTE]
 > You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 
+For local development, settings are also loaded from a `.env` file in the current working directory. Exported shell
+variables take precedence. Keep `.env` local; it is ignored by Git.
+
 | Name                     | Description                                                         | Default Value                                                     |
 |--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
 | `QDRANT_URL`             | URL of the Qdrant server                                            | None                                                              |
@@ -50,11 +53,12 @@ Configuration is done via environment variables. The only command-line argument 
 | `EMBEDDING_PROVIDER`     | Required provider: `fastembed`, `openai`, `vertexai`, or `cohere`   | None                                                              |
 | `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
 | `EMBEDDING_API_KEY`      | API key used by OpenAI or Cohere providers                          | None                                                              |
+| `OPENAI_BASE_URL`        | Optional custom API URL for the OpenAI provider                     | OpenAI API default                                                |
 | `GOOGLE_CLOUD_PROJECT`   | Google Cloud project ID for Vertex AI                               | Detected by Google credentials                                    |
 | `GOOGLE_CLOUD_LOCATION`  | Vertex AI region                                                    | `us-central1`                                                     |
 | `EMBEDDING_VECTOR_SIZE`  | Vector dimension for OpenAI, Vertex AI, or Cohere                   | None                                                              |
-| `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant_embeddings/settings.py) |
+| `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant_embeddings/settings.py) |
 | `QDRANT_SEARCH_LIMIT`    | Maximum number of results to return from search                     | `10`                                                              |
 | `QDRANT_READ_ONLY`       | Enable read-only mode (disables `qdrant-store` tool)                | `false`                                                           |
 
@@ -206,6 +210,8 @@ EMBEDDING_VECTOR_SIZE=1536 \
 uvx --from 'mcp-server-qdrant-embeddings[openai]' mcp-server-qdrant-embeddings
 ```
 
+For a custom OpenAI-compatible endpoint, also set `OPENAI_BASE_URL` to its `/v1` API URL.
+
 Vertex AI example (using Application Default Credentials):
 
 ```shell
@@ -333,7 +339,7 @@ the MCP inspector in your browser.
 
 ```shell
 EMBEDDING_PROVIDER=fastembed COLLECTION_NAME=mcp-dev \
-uv run --extra fastembed fastmcp dev src/mcp_server_qdrant/server.py
+uv run --extra fastembed fastmcp dev src/mcp_server_qdrant_embeddings/server.py
 ```
 
 ### Using with VS Code
@@ -527,7 +533,7 @@ your browser to use the inspector.
 
 ```shell
 QDRANT_URL=":memory:" COLLECTION_NAME="test" EMBEDDING_PROVIDER=fastembed \
-uv run --extra fastembed fastmcp dev src/mcp_server_qdrant/server.py
+uv run --extra fastembed fastmcp dev src/mcp_server_qdrant_embeddings/server.py
 ```
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.

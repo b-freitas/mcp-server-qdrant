@@ -1,6 +1,6 @@
 from cohere import AsyncClientV2
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
+from mcp_server_qdrant_embeddings.embeddings.base import EmbeddingProvider
 
 
 class CohereEmbeddingProvider(EmbeddingProvider):

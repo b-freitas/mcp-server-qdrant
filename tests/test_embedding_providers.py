@@ -4,14 +4,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from mcp_server_qdrant.embeddings.cohere import CohereEmbeddingProvider
-from mcp_server_qdrant.embeddings.factory import create_embedding_provider
-from mcp_server_qdrant.embeddings.vertexai import VertexAIEmbeddingProvider
-from mcp_server_qdrant.settings import EmbeddingProviderSettings
+from mcp_server_qdrant_embeddings.embeddings.cohere import CohereEmbeddingProvider
+from mcp_server_qdrant_embeddings.embeddings.factory import create_embedding_provider
+from mcp_server_qdrant_embeddings.embeddings.vertexai import VertexAIEmbeddingProvider
+from mcp_server_qdrant_embeddings.settings import EmbeddingProviderSettings
 
 
 def test_factory_requires_provider(monkeypatch):
-    monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
     settings = EmbeddingProviderSettings()
 
     with pytest.raises(ValueError, match="EMBEDDING_PROVIDER is required"):
@@ -26,7 +25,7 @@ def test_factory_reports_missing_optional_provider_extra(monkeypatch):
         raise ModuleNotFoundError("No module named 'openai'", name="openai")
 
     monkeypatch.setattr(
-        "mcp_server_qdrant.embeddings.factory.import_module",
+        "mcp_server_qdrant_embeddings.embeddings.factory.import_module",
         missing_openai_sdk,
     )
 
@@ -81,7 +80,7 @@ def test_vertexai_uses_retrieval_task_types(monkeypatch):
         aio=SimpleNamespace(models=SimpleNamespace(embed_content=embed_content))
     )
     monkeypatch.setattr(
-        "mcp_server_qdrant.embeddings.vertexai.genai.Client",
+        "mcp_server_qdrant_embeddings.embeddings.vertexai.genai.Client",
         lambda **kwargs: client,
     )
     provider = VertexAIEmbeddingProvider(

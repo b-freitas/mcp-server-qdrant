@@ -1,5 +1,5 @@
-from mcp_server_qdrant.mcp_server import QdrantMCPServer
-from mcp_server_qdrant.settings import (
+from mcp_server_qdrant_embeddings.mcp_server import QdrantMCPServer
+from mcp_server_qdrant_embeddings.settings import (
     EmbeddingProviderSettings,
     QdrantSettings,
     ToolSettings,

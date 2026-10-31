@@ -1,19 +1,20 @@
+from collections.abc import Callable
 from importlib import import_module
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
-from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
-from mcp_server_qdrant.settings import EmbeddingProviderSettings
+from mcp_server_qdrant_embeddings.embeddings.base import EmbeddingProvider
+from mcp_server_qdrant_embeddings.embeddings.types import EmbeddingProviderType
+from mcp_server_qdrant_embeddings.settings import EmbeddingProviderSettings
 
 
 def _load_provider(
     provider_type: EmbeddingProviderType,
     module_name: str,
     class_name: str,
-) -> type[EmbeddingProvider]:
+) -> Callable[..., EmbeddingProvider]:
     try:
         provider_module = import_module(module_name)
     except ImportError as exc:
-        if exc.name and exc.name.startswith("mcp_server_qdrant"):
+        if exc.name and exc.name.startswith("mcp_server_qdrant_embeddings"):
             raise
         raise RuntimeError(
             f"The '{provider_type.value}' provider requires optional dependencies. "
@@ -37,25 +38,26 @@ def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingP
     if settings.provider_type == EmbeddingProviderType.FASTEMBED:
         FastEmbedProvider = _load_provider(
             settings.provider_type,
-            "mcp_server_qdrant.embeddings.fastembed",
+            "mcp_server_qdrant_embeddings.embeddings.fastembed",
             "FastEmbedProvider",
         )
         return FastEmbedProvider(settings.model_name)
     elif settings.provider_type == EmbeddingProviderType.OPENAI:
         OpenAIEmbeddingProvider = _load_provider(
             settings.provider_type,
-            "mcp_server_qdrant.embeddings.openai",
+            "mcp_server_qdrant_embeddings.embeddings.openai",
             "OpenAIEmbeddingProvider",
         )
         return OpenAIEmbeddingProvider(
             model_name=settings.model_name,
             api_key=settings.api_key,
+            base_url=settings.openai_base_url,
             vector_size=settings.vector_size,
         )
     elif settings.provider_type == EmbeddingProviderType.VERTEXAI:
         VertexAIEmbeddingProvider = _load_provider(
             settings.provider_type,
-            "mcp_server_qdrant.embeddings.vertexai",
+            "mcp_server_qdrant_embeddings.embeddings.vertexai",
             "VertexAIEmbeddingProvider",
         )
         return VertexAIEmbeddingProvider(
@@ -67,7 +69,7 @@ def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingP
     elif settings.provider_type == EmbeddingProviderType.COHERE:
         CohereEmbeddingProvider = _load_provider(
             settings.provider_type,
-            "mcp_server_qdrant.embeddings.cohere",
+            "mcp_server_qdrant_embeddings.embeddings.cohere",
             "CohereEmbeddingProvider",
         )
         return CohereEmbeddingProvider(

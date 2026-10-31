@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from mcp_server_qdrant.embeddings.factory import create_embedding_provider
-from mcp_server_qdrant.embeddings.openai import OpenAIEmbeddingProvider
-from mcp_server_qdrant.settings import EmbeddingProviderSettings
+from mcp_server_qdrant_embeddings.embeddings.factory import create_embedding_provider
+from mcp_server_qdrant_embeddings.embeddings.openai import OpenAIEmbeddingProvider
+from mcp_server_qdrant_embeddings.settings import EmbeddingProviderSettings
 
 
 def test_embed_documents_uses_openai_embeddings_api():
@@ -46,11 +46,15 @@ def test_embed_query_uses_openai_embeddings_api():
 
 def test_vector_configuration():
     provider = OpenAIEmbeddingProvider(
-        "example/model", api_key="test-key", vector_size=3
+        "example/model",
+        api_key="test-key",
+        base_url="https://api.example.test/v1",
+        vector_size=3,
     )
 
     assert provider.get_vector_name() == "openai-example-model"
     assert provider.get_vector_size() == 3
+    assert str(provider.client.base_url) == "https://api.example.test/v1/"
 
 
 def test_vector_size_is_required():
@@ -69,10 +73,12 @@ def test_factory_creates_openai_provider(monkeypatch):
     monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
     monkeypatch.setenv("EMBEDDING_MODEL", "example/model")
     monkeypatch.setenv("EMBEDDING_API_KEY", "test-key")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://api.example.test/v1")
     monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "3")
     settings = EmbeddingProviderSettings()
 
     provider = create_embedding_provider(settings)
 
     assert isinstance(provider, OpenAIEmbeddingProvider)
+    assert str(provider.client.base_url) == "https://api.example.test/v1/"
     assert provider.get_vector_size() == 3

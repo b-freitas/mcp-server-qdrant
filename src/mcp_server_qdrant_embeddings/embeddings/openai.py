@@ -1,6 +1,6 @@
 from openai import AsyncOpenAI
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
+from mcp_server_qdrant_embeddings.embeddings.base import EmbeddingProvider
 
 
 class OpenAIEmbeddingProvider(EmbeddingProvider):
@@ -10,13 +10,14 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         self,
         model_name: str,
         api_key: str | None = None,
+        base_url: str | None = None,
         vector_size: int | None = None,
     ):
         if not api_key:
             raise ValueError("EMBEDDING_API_KEY must be set for the openai provider.")
         self.model_name = model_name
         self.vector_size = vector_size
-        self.client = AsyncOpenAI(api_key=api_key)
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
     async def embed_documents(self, documents: list[str]) -> list[list[float]]:
         response = await self.client.embeddings.create(
