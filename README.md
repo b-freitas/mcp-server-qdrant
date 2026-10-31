@@ -212,6 +212,21 @@ uvx --from 'mcp-server-qdrant-embeddings[openai]' mcp-server-qdrant-embeddings
 
 For a custom OpenAI-compatible endpoint, also set `OPENAI_BASE_URL` to its `/v1` API URL.
 
+Magalu Cloud AIHub example (using its OpenAI-compatible embeddings endpoint):
+
+```shell
+EMBEDDING_PROVIDER=openai \
+EMBEDDING_MODEL=qwen-qwen3-embedding-8b \
+EMBEDDING_API_KEY=your-magalu-cloud-aihub-api-key \
+OPENAI_BASE_URL=https://api.inferencia.llm.mglu.io/v1 \
+EMBEDDING_VECTOR_SIZE=4096 \
+QDRANT_URL=:memory: \
+COLLECTION_NAME=mcp-dev \
+uvx --from 'mcp-server-qdrant-embeddings[openai]' mcp-server-qdrant-embeddings
+```
+
+This example uses an in-memory Qdrant collection; its contents are lost when the process exits.
+
 Vertex AI example (using Application Default Credentials):
 
 ```shell
