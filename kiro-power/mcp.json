@@ -4,11 +4,16 @@
     "qdrant": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["mcp-server-qdrant"],
+      "args": [
+        "--from",
+        "mcp-server-qdrant-embeddings[fastembed]",
+        "mcp-server-qdrant-embeddings"
+      ],
       "env": {
         "QDRANT_URL": "${QDRANT_URL}",
         "QDRANT_API_KEY": "${QDRANT_API_KEY}",
         "COLLECTION_NAME": "${COLLECTION_NAME}",
+        "EMBEDDING_PROVIDER": "fastembed",
         "EMBEDDING_MODEL": "${EMBEDDING_MODEL}"
       }
     }

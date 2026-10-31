@@ -1,7 +1,7 @@
 import pytest
 
-from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
-from mcp_server_qdrant.settings import (
+from mcp_server_qdrant_embeddings.embeddings.types import EmbeddingProviderType
+from mcp_server_qdrant_embeddings.settings import (
     DEFAULT_TOOL_FIND_DESCRIPTION,
     DEFAULT_TOOL_STORE_DESCRIPTION,
     EmbeddingProviderSettings,
@@ -66,22 +66,23 @@ class TestQdrantSettings:
 
 class TestEmbeddingProviderSettings:
     def test_default_values(self):
-        """Test default values are set correctly."""
+        """Require callers to choose a provider explicitly."""
         settings = EmbeddingProviderSettings()
-        assert settings.provider_type == EmbeddingProviderType.FASTEMBED
+        assert settings.provider_type is None
         assert settings.model_name == "sentence-transformers/all-MiniLM-L6-v2"
 
     def test_custom_values(self, monkeypatch):
         """Test loading custom values from environment variables."""
         monkeypatch.setenv("EMBEDDING_MODEL", "custom_model")
         settings = EmbeddingProviderSettings()
-        assert settings.provider_type == EmbeddingProviderType.FASTEMBED
+        assert settings.provider_type is None
         assert settings.model_name == "custom_model"
 
     def test_openai_config(self, monkeypatch):
         monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
         monkeypatch.setenv("EMBEDDING_MODEL", "text-embedding-3-small")
         monkeypatch.setenv("EMBEDDING_API_KEY", "test-key")
+        monkeypatch.setenv("OPENAI_BASE_URL", "https://api.example.test/v1")
         monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "1536")
 
         settings = EmbeddingProviderSettings()
@@ -89,6 +90,7 @@ class TestEmbeddingProviderSettings:
         assert settings.provider_type == EmbeddingProviderType.OPENAI
         assert settings.model_name == "text-embedding-3-small"
         assert settings.api_key == "test-key"
+        assert settings.openai_base_url == "https://api.example.test/v1"
         assert settings.vector_size == 1536
 
     def test_cohere_config(self, monkeypatch):
@@ -116,6 +118,27 @@ class TestEmbeddingProviderSettings:
         assert settings.google_cloud_project == "test-project"
         assert settings.google_cloud_location == "europe-west1"
         assert settings.vector_size == 3072
+
+    def test_reads_dotenv_and_environment_overrides_it(self, monkeypatch, tmp_path):
+        (tmp_path / ".env").write_text(
+            "EMBEDDING_PROVIDER=cohere\n"
+            "EMBEDDING_MODEL=embed-v4.0\n"
+            "EMBEDDING_API_KEY=dotenv-key\n"
+            "OPENAI_BASE_URL=https://api.example.test/v1\n"
+            "QDRANT_URL=http://localhost:6333\n",
+            encoding="utf-8",
+        )
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
+
+        embedding_settings = EmbeddingProviderSettings()
+        qdrant_settings = QdrantSettings()
+
+        assert embedding_settings.provider_type == EmbeddingProviderType.OPENAI
+        assert embedding_settings.model_name == "embed-v4.0"
+        assert embedding_settings.api_key == "dotenv-key"
+        assert embedding_settings.openai_base_url == "https://api.example.test/v1"
+        assert qdrant_settings.location == "http://localhost:6333"
 
     def test_vector_size_must_be_positive(self, monkeypatch):
         monkeypatch.setenv("EMBEDDING_VECTOR_SIZE", "0")

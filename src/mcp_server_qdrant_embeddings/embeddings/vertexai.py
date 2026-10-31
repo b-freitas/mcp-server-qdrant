@@ -1,7 +1,7 @@
 from google import genai
 from google.genai import types
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
+from mcp_server_qdrant_embeddings.embeddings.base import EmbeddingProvider
 
 
 class VertexAIEmbeddingProvider(EmbeddingProvider):

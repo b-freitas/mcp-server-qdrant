@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from fastembed import TextEmbedding
 
-from mcp_server_qdrant.embeddings.fastembed import FastEmbedProvider
+from mcp_server_qdrant_embeddings.embeddings.fastembed import FastEmbedProvider
 
 
 @pytest.mark.asyncio

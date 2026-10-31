@@ -1,9 +1,9 @@
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
+from mcp_server_qdrant_embeddings.embeddings.types import EmbeddingProviderType
 
 DEFAULT_TOOL_STORE_DESCRIPTION = (
     "Keep the memory for later use, when you are asked to remember something."
@@ -18,7 +18,15 @@ DEFAULT_TOOL_FIND_DESCRIPTION = (
 METADATA_PATH = "metadata"
 
 
-class ToolSettings(BaseSettings):
+class EnvironmentSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+class ToolSettings(EnvironmentSettings):
     """
     Configuration for all the tools.
     """
@@ -33,13 +41,13 @@ class ToolSettings(BaseSettings):
     )
 
 
-class EmbeddingProviderSettings(BaseSettings):
+class EmbeddingProviderSettings(EnvironmentSettings):
     """
     Configuration for the embedding provider.
     """
 
-    provider_type: EmbeddingProviderType = Field(
-        default=EmbeddingProviderType.FASTEMBED,
+    provider_type: EmbeddingProviderType | None = Field(
+        default=None,
         validation_alias="EMBEDDING_PROVIDER",
     )
     model_name: str = Field(
@@ -47,6 +55,9 @@ class EmbeddingProviderSettings(BaseSettings):
         validation_alias="EMBEDDING_MODEL",
     )
     api_key: str | None = Field(default=None, validation_alias="EMBEDDING_API_KEY")
+    openai_base_url: str | None = Field(
+        default=None, validation_alias="OPENAI_BASE_URL"
+    )
     google_cloud_project: str | None = Field(
         default=None, validation_alias="GOOGLE_CLOUD_PROJECT"
     )
@@ -81,7 +92,7 @@ class FilterableField(BaseModel):
     )
 
 
-class QdrantSettings(BaseSettings):
+class QdrantSettings(EnvironmentSettings):
     """
     Configuration for the Qdrant connector.
     """
