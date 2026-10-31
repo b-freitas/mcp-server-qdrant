@@ -19,4 +19,4 @@ ENV EMBEDDING_PROVIDER="fastembed"
 ENV EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
 
 # Run the server with SSE transport
-CMD ["mcp-server-qdrant-embeddings", "--transport", "sse"]
+CMD uvx mcp-server-qdrant-embeddings --transport sse
